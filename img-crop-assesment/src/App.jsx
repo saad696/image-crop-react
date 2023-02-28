@@ -104,7 +104,7 @@ function App() {
 
     return (
         <>
-            <div className='m-20'>
+            <div className='m-6 md:m-20'>
                 <Row justify={'center'}>
                     <Col xs={24}>
                         <Dragger
@@ -124,10 +124,10 @@ function App() {
                             </p>
                         </Dragger>
                     </Col>
-                    <Col xs={24} className='mt-32'>
-                        <Row justify={'center'} className='space-x-6'>
-                            <Col span={5}>
-                                <Card bordered={false}>
+                    <Col xs={24} className='mt-24 md:mt-32'>
+                        <Row justify={'center'} gutter={[16, 16]}>
+                            <Col xs={12} md={5}>
+                                <Card bordered={false} className='!shadow-lg'>
                                     <Statistic
                                         title='Height'
                                         value={imageDetails.height || 0}
@@ -136,8 +136,8 @@ function App() {
                                     />
                                 </Card>
                             </Col>
-                            <Col span={5}>
-                                <Card bordered={false}>
+                            <Col xs={12} md={5}>
+                                <Card bordered={false} className='!shadow-lg'>
                                     <Statistic
                                         title='Width'
                                         value={imageDetails.width || 0}
@@ -146,8 +146,8 @@ function App() {
                                     />
                                 </Card>
                             </Col>
-                            <Col span={5}>
-                                <Card bordered={false}>
+                            <Col xs={12} md={5}>
+                                <Card bordered={false} className='!shadow-lg'>
                                     <Statistic
                                         title='Start Coordinates'
                                         value={
@@ -162,8 +162,8 @@ function App() {
                                     />
                                 </Card>
                             </Col>
-                            <Col span={5}>
-                                <Card bordered={false}>
+                            <Col xs={12} md={5}>
+                                <Card bordered={false} className='!shadow-lg'>
                                     <Statistic
                                         title='End Coordinates'
                                         value={
@@ -182,7 +182,7 @@ function App() {
                         </Row>
                     </Col>
                     {!!imgSrc && (
-                        <Col xs={18}>
+                        <Col xs={24} md={18}>
                             <div className='mt-6'>
                                 <ReactCrop
                                     crop={crop}
