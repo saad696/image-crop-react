@@ -62,6 +62,17 @@ function App() {
         setCrop(cropCenter(width, height, aspect));
     };
 
+    const onDeleteImg = () => {
+        setImgSrc('');
+        setCompletedCrop('');
+        setImageDetails({
+            startCo: { x: 0, y: 0 },
+            endCo: { x: 0, y: 0 },
+            height: null,
+            width: null,
+        });
+    };
+
     useEffect(() => {
         if (!crop) return;
         setImageDetails({
@@ -99,10 +110,7 @@ function App() {
                         <Dragger
                             {...props}
                             onChange={onImageUpload}
-                            onRemove={() => {
-                                setImgSrc('');
-                                setCompletedCrop('');
-                            }}
+                            onRemove={onDeleteImg}
                         >
                             <p className='ant-upload-drag-icon'>
                                 <InboxOutlined />
@@ -116,8 +124,8 @@ function App() {
                             </p>
                         </Dragger>
                     </Col>
-                    <Col xs={24}>
-                        <Row justify={'center'} className='space-x-6 mt-32'>
+                    <Col xs={24} className='mt-32'>
+                        <Row justify={'center'} className='space-x-6'>
                             <Col span={5}>
                                 <Card bordered={false}>
                                     <Statistic
