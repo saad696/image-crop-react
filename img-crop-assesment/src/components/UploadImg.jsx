@@ -30,7 +30,7 @@ const UploadImg = ({ onImageUpload, onDeleteImg, from }) => {
             <Dragger
                 {...props}
                 onChange={(file) => onImageUpload(file, from)}
-                onRemove={onDeleteImg}
+                showUploadList={false}
             >
                 <p className='ant-upload-drag-icon'>
                     <InboxOutlined />

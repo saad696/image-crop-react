@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 // antd imports
-import { Card, Col, Empty, message, Row, Statistic, Tabs, Upload } from 'antd';
-import { ArrowUpOutlined, InboxOutlined } from '@ant-design/icons';
+import { Button, Col, Empty, Row, Tabs, Tooltip } from 'antd';
 
 // others imports
 import ReactCrop from 'react-image-crop';
@@ -48,6 +47,7 @@ function App() {
         const { width, height } = e.currentTarget;
 
         if (from === 1) {
+            console.log('inside');
             setCrop(cropCenter(width, height, aspect));
         } else {
             if (crop2) return;
@@ -64,6 +64,7 @@ function App() {
     const onDeleteImg = () => {
         setImgSrc('');
         setCompletedCrop('');
+        setImgSrc2('');
         setImageDetails({
             startCo: { x: 0, y: 0 },
             endCo: { x: 0, y: 0 },
@@ -105,8 +106,13 @@ function App() {
         <>
             <div className='m-6 md:m-20'>
                 <Row justify={'center'}>
-                    <Col xs={24} className='my-14 md:my-16'>
+                    <Col xs={24} className='my-14'>
                         <Stats imageDetails={imageDetails} />
+                    </Col>
+                    <Col xs={24} className='text-right'>
+                        <Tooltip title='Resets the uploads' placement='bottom'>
+                            <Button onClick={onDeleteImg}>Restore</Button>
+                        </Tooltip>
                     </Col>
                 </Row>
                 <Tabs
@@ -117,7 +123,7 @@ function App() {
                             label: 'Part 1',
                             children: (
                                 <Row justify={'center'}>
-                                    <Col xs={24} className='mb-16'>
+                                    <Col xs={24} className='mb-5'>
                                         <ImageUpload
                                             from={1}
                                             onImageUpload={onImageUpload}
