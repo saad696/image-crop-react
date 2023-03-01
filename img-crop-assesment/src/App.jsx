@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 // antd imports
-import { Card, Col, message, Row, Statistic, Upload } from 'antd';
+import { Card, Col, Empty, message, Row, Statistic, Tabs, Upload } from 'antd';
 import { ArrowUpOutlined, InboxOutlined } from '@ant-design/icons';
 
 // others imports
@@ -8,37 +8,21 @@ import ReactCrop from 'react-image-crop';
 import { cropCenter, getImageURL } from './utils/helpers';
 import { imagePreview } from './utils/imagePreview';
 import { useDebounceEffect } from '../hooks/useDebounceEffects';
-
-const { Dragger } = Upload;
-
-// upload props
-const props = {
-    name: 'image',
-    multiple: false,
-    listType: 'picture',
-    maxCount: 1,
-    beforeUpload: (file) => {
-        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-        if (!allowedTypes.includes(file.type)) {
-            message.error(`This file type is not allowed!`);
-        }
-        return allowedTypes.includes(file.type) || Upload.LIST_IGNORE;
-    },
-    customRequest: ({ file, onSuccess }) => {
-        setTimeout(() => {
-            onSuccess('ok');
-        }, 0);
-    },
-};
+import { ImageUpload, Stats } from './components';
 
 function App() {
     const [imgSrc, setImgSrc] = useState('');
+    const [imgSrc2, setImgSrc2] = useState('');
+
     const [crop, setCrop] = useState();
     const [completedCrop, setCompletedCrop] = useState();
+
+    const [crop2, setCrop2] = useState();
+
+    const [aspect, setAspect] = useState(undefined);
     // - 16 / 9 for rectangle
     // - 1 for square
     // - undefined for free crop
-    const [aspect, setAspect] = useState(undefined);
     const [imageDetails, setImageDetails] = useState({
         startCo: { x: 0, y: 0 },
         endCo: { x: 0, y: 0 },
@@ -49,17 +33,32 @@ function App() {
     const imgRef = useRef(null);
     const previewCanvasRef = useRef(null);
 
-    const onImageUpload = (imgFile) => {
+    const onImageUpload = (imgFile, part) => {
         if (imgFile.file.status === 'done') {
             setCrop(undefined);
-            getImageURL(setImgSrc, imgFile);
+            if (part === 2) {
+                getImageURL(setImgSrc2, imgFile);
+            } else {
+                getImageURL(setImgSrc, imgFile);
+            }
         }
     };
 
-    const onImageLoad = (e) => {
+    const onImageLoad = (e, from) => {
         const { width, height } = e.currentTarget;
-        console.log(cropCenter(width, height, aspect));
-        setCrop(cropCenter(width, height, aspect));
+
+        if (from === 1) {
+            setCrop(cropCenter(width, height, aspect));
+        } else {
+            if (crop2) return;
+            setCrop2({
+                height: imageDetails.height,
+                unit: '%',
+                width: imageDetails.width,
+                x: imageDetails.startCo.x,
+                y: imageDetails.startCo.y,
+            });
+        }
     };
 
     const onDeleteImg = () => {
@@ -106,122 +105,120 @@ function App() {
         <>
             <div className='m-6 md:m-20'>
                 <Row justify={'center'}>
-                    <Col xs={24}>
-                        <Dragger
-                            {...props}
-                            onChange={onImageUpload}
-                            onRemove={onDeleteImg}
-                        >
-                            <p className='ant-upload-drag-icon'>
-                                <InboxOutlined />
-                            </p>
-                            <p className='ant-upload-text'>
-                                Click or drag file to this area to upload
-                            </p>
-                            <p className='ant-upload-hint'>
-                                Only one image upload is allowed at a time, of
-                                type (png, jpeg, jpg)
-                            </p>
-                        </Dragger>
+                    <Col xs={24} className='my-14 md:my-16'>
+                        <Stats imageDetails={imageDetails} />
                     </Col>
-                    <Col xs={24} className='mt-24 md:mt-32'>
-                        <Row justify={'center'} gutter={[16, 16]}>
-                            <Col xs={12} md={5}>
-                                <Card bordered={false} className='!shadow-lg'>
-                                    <Statistic
-                                        title='Height'
-                                        value={imageDetails.height || 0}
-                                        precision={2}
-                                        suffix='%'
-                                    />
-                                </Card>
-                            </Col>
-                            <Col xs={12} md={5}>
-                                <Card bordered={false} className='!shadow-lg'>
-                                    <Statistic
-                                        title='Width'
-                                        value={imageDetails.width || 0}
-                                        precision={2}
-                                        suffix='%'
-                                    />
-                                </Card>
-                            </Col>
-                            <Col xs={12} md={5}>
-                                <Card bordered={false} className='!shadow-lg'>
-                                    <Statistic
-                                        title='Start Coordinates'
-                                        value={
-                                            imageDetails.height
-                                                ? `(${parseInt(
-                                                      imageDetails.startCo.x
-                                                  ).toFixed(2)}, ${parseInt(
-                                                      imageDetails.startCo.y
-                                                  ).toFixed(2)})`
-                                                : '(0,0)'
-                                        }
-                                    />
-                                </Card>
-                            </Col>
-                            <Col xs={12} md={5}>
-                                <Card bordered={false} className='!shadow-lg'>
-                                    <Statistic
-                                        title='End Coordinates'
-                                        value={
-                                            imageDetails.height
-                                                ? `(${parseInt(
-                                                      imageDetails.endCo.x
-                                                  ).toFixed(2)}, ${parseInt(
-                                                      imageDetails.endCo.y
-                                                  ).toFixed(2)})`
-                                                : '(0,0)'
-                                        }
-                                        precision={2}
-                                    />
-                                </Card>
-                            </Col>
-                        </Row>
-                    </Col>
-                    {!!imgSrc && (
-                        <Col xs={24} md={18}>
-                            <div className='mt-6'>
-                                <ReactCrop
-                                    crop={crop}
-                                    onChange={(_, percentCrop) =>
-                                        setCrop(percentCrop)
-                                    }
-                                    onComplete={(c) => setCompletedCrop(c)}
-                                    aspect={aspect}
-                                >
-                                    <img
-                                        ref={imgRef}
-                                        onLoad={onImageLoad}
-                                        src={imgSrc}
-                                        alt='uploaded-img'
-                                        className='mx-auto'
-                                    />
-                                </ReactCrop>
-                            </div>
-                        </Col>
-                    )}
-                    {!!completedCrop && (
-                        <Col xs={24}>
-                            <div className='mt-32'>
-                                {!!completedCrop && (
-                                    <canvas
-                                        className='mx-auto'
-                                        ref={previewCanvasRef}
-                                        style={{
-                                            border: '1px solid black',
-                                            objectFit: 'contain',
-                                            width: completedCrop.width,
-                                            height: completedCrop.height,
-                                        }}
-                                    />
-                                )}
-                            </div>
-                        </Col>
-                    )}
                 </Row>
+                <Tabs
+                    defaultActiveKey='1'
+                    items={[
+                        {
+                            key: '1',
+                            label: 'Part 1',
+                            children: (
+                                <Row justify={'center'}>
+                                    <Col xs={24} className='mb-16'>
+                                        <ImageUpload
+                                            from={1}
+                                            onImageUpload={onImageUpload}
+                                            onDeleteImg={onDeleteImg}
+                                        />
+                                    </Col>
+                                    {!!imgSrc && (
+                                        <Col xs={24} md={18}>
+                                            <div className='mt-6 flex justify-center'>
+                                                <ReactCrop
+                                                    crop={crop}
+                                                    onChange={(
+                                                        _,
+                                                        percentCrop
+                                                    ) => setCrop(percentCrop)}
+                                                    onComplete={(c) =>
+                                                        setCompletedCrop(c)
+                                                    }
+                                                    aspect={aspect}
+                                                >
+                                                    <img
+                                                        ref={imgRef}
+                                                        onLoad={(e) => {
+                                                            onImageLoad(e, 1);
+                                                        }}
+                                                        src={imgSrc}
+                                                        alt='uploaded-img'
+                                                        className='mx-auto'
+                                                    />
+                                                </ReactCrop>
+                                            </div>
+                                        </Col>
+                                    )}
+                                    {!!completedCrop && (
+                                        <Col xs={24}>
+                                            <div className='mt-10'>
+                                                {!!completedCrop && (
+                                                    <canvas
+                                                        className='mx-auto'
+                                                        ref={previewCanvasRef}
+                                                        style={{
+                                                            border: '1px solid black',
+                                                            objectFit:
+                                                                'contain',
+                                                            width: completedCrop.width,
+                                                            height: completedCrop.height,
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
+                                        </Col>
+                                    )}
+                                </Row>
+                            ),
+                        },
+                        {
+                            key: '2',
+                            label: 'Part 2',
+                            children:
+                                imageDetails.height && imageDetails.width ? (
+                                    <Row justify={'center'}>
+                                        <Col xs={24} className='mb-16'>
+                                            <ImageUpload
+                                                from={2}
+                                                onImageUpload={onImageUpload}
+                                                onDeleteImg={onDeleteImg}
+                                            />
+                                        </Col>
+                                        {!!imgSrc2 && (
+                                            <Col xs={24} md={18}>
+                                                <div className='mt-6 flex justify-center'>
+                                                    <ReactCrop
+                                                        crop={crop2}
+                                                        onChange={(c) =>
+                                                            setCrop2(c)
+                                                        }
+                                                        aspect={aspect}
+                                                    >
+                                                        <img
+                                                            ref={imgRef}
+                                                            onLoad={(e) => {
+                                                                onImageLoad(
+                                                                    e,
+                                                                    2
+                                                                );
+                                                            }}
+                                                            src={imgSrc2}
+                                                            alt='uploaded-img'
+                                                            className='mx-auto'
+                                                        />
+                                                    </ReactCrop>
+                                                </div>
+                                            </Col>
+                                        )}
+                                    </Row>
+                                ) : (
+                                    <Empty description='Please upload and resize image on part one to continue...' />
+                                ),
+                        },
+                    ]}
+                />
             </div>
         </>
     );

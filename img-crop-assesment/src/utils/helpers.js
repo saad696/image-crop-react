@@ -5,7 +5,7 @@ const cropCenter = (width, height, aspectRatio) => {
         makeAspectCrop(
             {
                 unit: '%',
-                width: 90, // can change how much space that crop box will occupy
+                width: 0, // can change how much space that crop box will occupy
             },
             aspectRatio,
             width,
